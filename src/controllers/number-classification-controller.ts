@@ -3,54 +3,41 @@ import { Request, Response } from "express";
 import { funFactService, isArmstrongNumber, isPerfectNumber, isPrimeNumber } from "../services";
 import { successResponse } from "../helpers";
 
-
 export const classifyNumberController = async (req: Request, res: Response): Promise<void> => {
     const { number } = req.query;
-    if (!number || isNaN(Number(number)) || parseInt(number as string, 10) < 0) {
+
+    const num = Number(number);
+    if (isNaN(num)) {
         res.status(StatusCodes.BAD_REQUEST).json({
-          number,
-          error: true,
+            number,
+            error: "Invalid number input",
         });
         return;
     }
 
-    const num: number = parseInt(number as string, 10);
     const properties: string[] = [];
-    let funFact: string;
-
-    if (isArmstrongNumber(num)) {
-        properties.push('armstrong');
-    }
-    if (num % 2 !== 0) {
-        properties.push('odd');
-    } else {
-        properties.push('even');
-    }
+    if (isArmstrongNumber(num)) properties.push("armstrong");
+    if (num % 2 !== 0) properties.push("odd");
+    else properties.push("even");
 
     const digitSum = num
         .toString()
-        .split('')
-        .reduce((sum, digit) => sum + parseInt(digit), 0);
-  
+        .split("")
+        .reduce((sum, digit) => sum + Number(digit), 0);
+
+    let funFact = "No fun fact available";
     try {
-        const response = await funFactService(num);
-        funFact = response;
+        funFact = await funFactService(num);
     } catch (error) {
-        console.error(error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-            error: true,
-            message: "An error occurred while trying to classify the number",
-        });
-        return;
+        console.error("Fun fact API failed", error);
     }
 
     successResponse(res, StatusCodes.OK, {
         number: num,
-        is_prime: isPrimeNumber(num),
-        is_perfect: isPerfectNumber(num),
+        is_prime: Boolean(isPrimeNumber(num)),
+        is_perfect: Boolean(isPerfectNumber(num)),
         properties,
         digit_sum: digitSum,
-        fun_fact: funFact,
+        fun_fact: String(funFact),
     });
-
 };
