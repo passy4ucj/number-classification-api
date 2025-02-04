@@ -42,5 +42,8 @@ export const classifyNumberController = async (req: Request, res: Response): Pro
         fun_fact: funFact,
     };
 
-    successResponse(res, StatusCodes.OK, responsePayload);
+    res.status(StatusCodes.OK).json({
+        ...responsePayload
+    });
+    return;
 };
