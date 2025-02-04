@@ -20,7 +20,7 @@ export const classifyNumberController = async (req: Request, res: Response): Pro
     if (num % 2 !== 0) properties.push("odd");
     else properties.push("even");
 
-    const digitSum = num
+    const digitSum = Math.abs(num)
         .toString()
         .split("")
         .reduce((sum, digit) => sum + Number(digit), 0);
@@ -28,16 +28,19 @@ export const classifyNumberController = async (req: Request, res: Response): Pro
     let funFact = "No fun fact available";
     try {
         funFact = await funFactService(num);
+        if (typeof funFact !== "string") funFact = String(funFact);
     } catch (error) {
         console.error("Fun fact API failed", error);
     }
 
-    successResponse(res, StatusCodes.OK, {
+    const responsePayload = {
         number: num,
         is_prime: Boolean(isPrimeNumber(num)),
         is_perfect: Boolean(isPerfectNumber(num)),
-        properties,
-        digit_sum: digitSum,
-        fun_fact: String(funFact),
-    });
+        properties: Array.isArray(properties) ? properties : [],
+        digit_sum: Number(digitSum),
+        fun_fact: funFact,
+    };
+
+    successResponse(res, StatusCodes.OK, responsePayload);
 };
